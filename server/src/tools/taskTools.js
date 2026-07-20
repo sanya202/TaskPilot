@@ -84,7 +84,7 @@ const createSearchTaskTool = (userId) =>
 
       return JSON.stringify(
         tasks.map((task) => ({
-          taskId: task._id,
+          taskId: task._id.toString(),
           title: task.title,
           status: task.status,
           priority: task.priority,
@@ -96,7 +96,7 @@ const createSearchTaskTool = (userId) =>
       name: "search_task",
 
       description:
-        "Search user's tasks by title keyword. Use this when user refers to a task by name.",
+        "Delete an existing task. Always use the exact taskId returned by search_task. Never create your own taskId or use task title as taskId.",
 
       schema: z.object({
         keyword: z.string(),
@@ -157,6 +157,40 @@ const updateTask = (userId) =>
     },
   );
 
+// ================= DELETE TASK =================
+const deleteTask = (userId) =>
+  tool(
+    async ({ taskId }) => {
+      console.log("DELETE USER:", userId);
+      console.log("DELETE TASK ID:", taskId);
+
+      const deletedTask = await Task.findOneAndDelete({
+        _id: taskId,
+        userId,
+      });
+
+      if (!deletedTask) {
+        return "Task not found";
+      }
+
+      return JSON.stringify({
+        message: "Task deleted successfully",
+        title: deletedTask.title,
+      });
+    },
+
+    {
+      name: "delete_task",
+
+      description:
+        "Delete an existing task. Use this only when the user wants to remove/delete a task.",
+
+      schema: z.object({
+        taskId: z.string(),
+      }),
+    },
+  );
+
 module.exports = {
   createCreateTaskTool,
 
@@ -165,4 +199,6 @@ module.exports = {
   createSearchTaskTool,
 
   updateTask,
+
+  deleteTask,
 };

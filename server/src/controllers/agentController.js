@@ -1,6 +1,7 @@
 const Memory = require("../models/Memory");
 const { ToolMessage } = require("@langchain/core/messages");
 
+
 const { createAgent, systemPrompt } = require("../agent/agent");
 
 const {
@@ -8,13 +9,16 @@ const {
   createGetTasksTool,
   updateTask,
   createSearchTaskTool,
+  deleteTask,
 } = require("../tools/taskTools");
 
 const { createWorkflowTool } = require("../tools/workflowTools");
 
 const runAgent = async (req, res) => {
   try {
-    const { userId, message } = req.body;
+    const { message } = req.body;
+
+    const userId = req.user.id;
 
     // FETCH PREVIOUS MEMORY
     const previousMemories = await Memory.find({
@@ -35,6 +39,7 @@ const runAgent = async (req, res) => {
       get_tasks: createGetTasksTool(userId),
       update_task: updateTask(userId),
       search_task: createSearchTaskTool(userId),
+      delete_task: deleteTask(userId),
     };
 
     const agent = createAgent(userId);
